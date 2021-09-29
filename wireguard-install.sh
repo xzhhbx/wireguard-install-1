@@ -9,7 +9,7 @@ NC='\033[0m'
 
 function isRoot() {
 	if [ "${EUID}" -ne 0 ]; then
-		echo "You need to run this script as root"
+		echo "你需要以root身份运行此脚本"
 		exit 1
 	fi
 }
@@ -63,7 +63,7 @@ function initialCheck() {
 
 function installQuestions() {
 	echo "Welcome to the WireGuard installer!"
-	echo "The git repository is available at: https://github.com/angristan/wireguard-install"
+	echo "The git repository is available at: https://github.com/xzhhbx/wireguard-install"
 	echo ""
 	echo "I need to ask you a few questions before starting the setup."
 	echo "You can leave the default options and just press enter if you are ok with them."
@@ -103,19 +103,19 @@ function installQuestions() {
 
 	# Adguard DNS by default
 	until [[ ${CLIENT_DNS_1} =~ ^((25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$ ]]; do
-		read -rp "First DNS resolver to use for the clients: " -e -i 94.140.14.14 CLIENT_DNS_1
+		read -rp "客户端使用的第一个DNS解析器: " -e -i 8.8.8.8 CLIENT_DNS_1
 	done
 	until [[ ${CLIENT_DNS_2} =~ ^((25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$ ]]; do
-		read -rp "Second DNS resolver to use for the clients (optional): " -e -i 94.140.15.15 CLIENT_DNS_2
+		read -rp "为客户端使用的第二个DNS解析器（可选）: " -e -i 8.8.4.4 CLIENT_DNS_2
 		if [[ ${CLIENT_DNS_2} == "" ]]; then
 			CLIENT_DNS_2="${CLIENT_DNS_1}"
 		fi
 	done
 
 	echo ""
-	echo "Okay, that was all I needed. We are ready to setup your WireGuard server now."
-	echo "You will be able to generate a client at the end of the installation."
-	read -n1 -r -p "Press any key to continue..."
+	echo "好了，这就是我所需要的一切。我们已经准备好设置你的WireGuard服务器了."
+	echo "你将能够在安装结束时生成一个客户端."
+	read -n1 -r -p "按任意键继续..."
 }
 
 function installWireGuard() {
@@ -197,7 +197,7 @@ net.ipv6.conf.all.forwarding = 1" >/etc/sysctl.d/wg.conf
 	systemctl enable "wg-quick@${SERVER_WG_NIC}"
 
 	newClient
-	echo "If you want to add more clients, you simply need to run this script another time!"
+	echo "如果你想添加更多的客户，你只需要再运行一次这个脚本就可以了!"
 
 	# Check if WireGuard is running
 	systemctl is-active --quiet "wg-quick@${SERVER_WG_NIC}"
@@ -205,9 +205,9 @@ net.ipv6.conf.all.forwarding = 1" >/etc/sysctl.d/wg.conf
 
 	# WireGuard might not work if we updated the kernel. Tell the user to reboot
 	if [[ ${WG_RUNNING} -ne 0 ]]; then
-		echo -e "\n${RED}WARNING: WireGuard does not seem to be running.${NC}"
-		echo -e "${ORANGE}You can check if WireGuard is running with: systemctl status wg-quick@${SERVER_WG_NIC}${NC}"
-		echo -e "${ORANGE}If you get something like \"Cannot find device ${SERVER_WG_NIC}\", please reboot!${NC}"
+		echo -e "\n${RED}警告：WireGuard似乎没有运行.${NC}"
+		echo -e "${ORANGE}你可以用以下方法检查WireGuard是否正在运行: systemctl status wg-quick@${SERVER_WG_NIC}${NC}"
+		echo -e "${ORANGE}如果你得到的信息是 \"Cannot find device ${SERVER_WG_NIC}\", please reboot!${NC}"
 	fi
 }
 
@@ -215,8 +215,8 @@ function newClient() {
 	ENDPOINT="${SERVER_PUB_IP}:${SERVER_PORT}"
 
 	echo ""
-	echo "Tell me a name for the client."
-	echo "The name must consist of alphanumeric character. It may also include an underscore or a dash and can't exceed 15 chars."
+	echo "告诉我一个客户端的名字."
+	echo "该名称必须由字母数字字符组成。它也可以包括下划线或破折号，但不能超过15个字符."
 
 	until [[ ${CLIENT_NAME} =~ ^[a-zA-Z0-9_-]+$ && ${CLIENT_EXISTS} == '0' && ${#CLIENT_NAME} -lt 16 ]]; do
 		read -rp "Client name: " -e CLIENT_NAME
@@ -224,7 +224,7 @@ function newClient() {
 
 		if [[ ${CLIENT_EXISTS} == '1' ]]; then
 			echo ""
-			echo "A client with the specified name was already created, please choose another name."
+			echo "已经创建了一个具有指定名称的用户，请选择其他名称."
 			echo ""
 		fi
 	done
@@ -238,7 +238,7 @@ function newClient() {
 
 	if [[ ${DOT_EXISTS} == '1' ]]; then
 		echo ""
-		echo "The subnet configured supports only 253 clients."
+		echo "所配置的子网只支持253个客户端."
 		exit 1
 	fi
 
@@ -250,7 +250,7 @@ function newClient() {
 
 		if [[ ${IPV4_EXISTS} == '1' ]]; then
 			echo ""
-			echo "A client with the specified IPv4 was already created, please choose another IPv4."
+			echo "已经创建了一个指定IPv4的客户，请选择另一个IPv4."
 			echo ""
 		fi
 	done
@@ -263,7 +263,7 @@ function newClient() {
 
 		if [[ ${IPV6_EXISTS} == '1' ]]; then
 			echo ""
-			echo "A client with the specified IPv6 was already created, please choose another IPv6."
+			echo "已经创建了一个指定IPv6的客户端，请选择另一个IPv6."
 			echo ""
 		fi
 	done
@@ -322,18 +322,18 @@ function revokeClient() {
 	NUMBER_OF_CLIENTS=$(grep -c -E "^### Client" "/etc/wireguard/${SERVER_WG_NIC}.conf")
 	if [[ ${NUMBER_OF_CLIENTS} == '0' ]]; then
 		echo ""
-		echo "You have no existing clients!"
+		echo "你没有现成的用户!"
 		exit 1
 	fi
 
 	echo ""
-	echo "Select the existing client you want to revoke"
+	echo "选择你想删除的现有用户"
 	grep -E "^### Client" "/etc/wireguard/${SERVER_WG_NIC}.conf" | cut -d ' ' -f 3 | nl -s ') '
 	until [[ ${CLIENT_NUMBER} -ge 1 && ${CLIENT_NUMBER} -le ${NUMBER_OF_CLIENTS} ]]; do
 		if [[ ${CLIENT_NUMBER} == '1' ]]; then
 			read -rp "Select one client [1]: " CLIENT_NUMBER
 		else
-			read -rp "Select one client [1-${NUMBER_OF_CLIENTS}]: " CLIENT_NUMBER
+			read -rp "选择一个客户端 [1-${NUMBER_OF_CLIENTS}]: " CLIENT_NUMBER
 		fi
 	done
 
@@ -352,7 +352,7 @@ function revokeClient() {
 
 function uninstallWg() {
 	echo ""
-	read -rp "Do you really want to remove WireGuard? [y/n]: " -e -i n REMOVE
+	read -rp "你是否真的想删除 WireGuard? [y/n]: " -e -i n REMOVE
 	if [[ $REMOVE == 'y' ]]; then
 		checkOS
 
@@ -388,29 +388,29 @@ function uninstallWg() {
 		WG_RUNNING=$?
 
 		if [[ ${WG_RUNNING} -eq 0 ]]; then
-			echo "WireGuard failed to uninstall properly."
+			echo "WireGuard 没能正确卸载."
 			exit 1
 		else
-			echo "WireGuard uninstalled successfully."
+			echo "WireGuard 卸载成功."
 			exit 0
 		fi
 	else
 		echo ""
-		echo "Removal aborted!"
+		echo "移除工作已中止!"
 	fi
 }
 
 function manageMenu() {
-	echo "Welcome to WireGuard-install!"
-	echo "The git repository is available at: https://github.com/angristan/wireguard-install"
+	echo "欢迎使用WireGuard安装脚本!"
+	echo "git资源库的网址是: https://github.com/xzhhbx/wireguard-install"
 	echo ""
-	echo "It looks like WireGuard is already installed."
+	echo "看起来WireGuard已经安装了."
 	echo ""
-	echo "What do you want to do?"
-	echo "   1) Add a new user"
-	echo "   2) Revoke existing user"
-	echo "   3) Uninstall WireGuard"
-	echo "   4) Exit"
+	echo "你想要做什么？"
+	echo "   1) 添加用户"
+	echo "   2) 删除用户"
+	echo "   3) 卸载WireGuard"
+	echo "   4) 退出"
 	until [[ ${MENU_OPTION} =~ ^[1-4]$ ]]; do
 		read -rp "Select an option [1-4]: " MENU_OPTION
 	done
